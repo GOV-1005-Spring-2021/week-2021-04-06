@@ -13,46 +13,52 @@ library(rstanarm)
 ```
 
 
+*What is the influence of age and gender on the expected longevity of political candidates?*
+
 ## Wisdom
 
 Look at the data
 Population
 Representative
+Validity
 
 ## Justice
 
 $$y_i = \beta_0  + \beta_1 x_{1,i} + \beta_2 x_{2,i} + \epsilon_i$$
 
-$$lived\_after_i = \beta_0  + \beta_1 male_i + \beta_2 election\_age_i + \epsilon_i$$
-The above is our **data generating mechanism**, or DGM.
 
+The above is our **data generating mechanism**, or DGM.
 
 ## Courage
 
 ### Model 1
 
-```{r}
+$$lived\_after_i = \beta_0  + \beta_1 male_i + \beta_2 election\_age_i + \epsilon_i$$
+
+```{r fit_1}
 fit_1 <- stan_glm(data = governors,
                   formula = lived_after ~ sex + election_age,
                   refresh = 0,
                   seed = 12)
 ```
 
-```{r}
+```{r fit_1_show}
 fit_1
 ```
 
-$$lived\_after_i = \beta_0  + \beta_1 male_i + \beta_2 election\_age_i + \beta_3 male_i election\_age_i + \epsilon_i$$
 ### Model 2
 
-```{r}
+
+$$lived\_after_i = \beta_0  + \beta_1 male_i + \beta_2 election\_age_i + \beta_3 male_i election\_age_i + \epsilon_i$$
+
+```{r fit_2}
 fit_2 <- stan_glm(data = governors,
-                  formula = lived_after ~ sex*election_age,
+                  formula = lived_after ~ sex + election_age + sex*election_age,
                   refresh = 0,
                   seed = 12)
 ```
 
-```{r}
+```{r fit_2_show}
 fit_2
 ```
 
