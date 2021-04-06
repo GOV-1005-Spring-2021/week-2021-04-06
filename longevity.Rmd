@@ -1,0 +1,59 @@
+---
+title: "Political Candidate Longevity"
+author: "David Kane"
+date: "4/6/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(primer.data)
+library(rstanarm)
+```
+
+
+## Wisdom
+
+Look at the data
+Population
+Representative
+
+## Justice
+
+$$y_i = \beta_0  + \beta_1 x_{1,i} + \beta_2 x_{2,i} + \epsilon_i$$
+
+$$lived\_after_i = \beta_0  + \beta_1 male_i + \beta_2 election\_age_i + \epsilon_i$$
+The above is our **data generating mechanism**, or DGM.
+
+
+## Courage
+
+### Model 1
+
+```{r}
+fit_1 <- stan_glm(data = governors,
+                  formula = lived_after ~ sex + election_age,
+                  refresh = 0,
+                  seed = 12)
+```
+
+```{r}
+fit_1
+```
+
+$$lived\_after_i = \beta_0  + \beta_1 male_i + \beta_2 election\_age_i + \beta_3 male_i election\_age_i + \epsilon_i$$
+### Model 2
+
+```{r}
+fit_2 <- stan_glm(data = governors,
+                  formula = lived_after ~ sex*election_age,
+                  refresh = 0,
+                  seed = 12)
+```
+
+```{r}
+fit_2
+```
+
+
