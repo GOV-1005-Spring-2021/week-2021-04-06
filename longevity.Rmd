@@ -19,12 +19,13 @@ library(rstanarm)
 
 Look at the data
 Population
+Ideal Preceptor Table
 Representative
 Validity
 
 ## Justice
 
-$$y_i = \beta_0  + \beta_1 x_{1,i} + \beta_2 x_{2,i} + \epsilon_i$$
+$$y_i = \beta_0  + \beta_1 x_{1,i} + \beta_2 x_{2,i} + ... + \beta_n x_{n,i} + \epsilon_i$$
 
 
 The above is our **data generating mechanism**, or DGM.
