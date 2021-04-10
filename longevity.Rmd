@@ -18,20 +18,23 @@ library(ggdist)
 
 ## Wisdom
 
-Look at the data
-Population
-Ideal Preceptor Table
-Representative
-Validity
+Look at the data  
+Population  
+Ideal Preceptor Table  
+Representative  
+Validity  
 
 ## Justice
 
 $$y_i = \beta_0  + \beta_1 x_{1,i} + \beta_2 x_{2,i} + ... + \beta_n x_{n,i} + \epsilon_i$$
+In this case, we have only explore two different model structures: linear (as above) and logistic. There are others. 
 
 
-The above is our **data generating mechanism**, or DGM.
 
 ## Courage
+
+
+The assumed  **data generating mechanism**, or DGM, is different for each specific model we estimate.
 
 ### Model 1
 
@@ -53,7 +56,12 @@ fit_1
 
 $$lived\_after_i = \beta_0  + \beta_1 male_i + \beta_2 election\_age_i + \beta_3 male_i election\_age_i + \epsilon_i$$
 
+For women:
+
 $$lived\_after_i = \beta_0  + \beta_2 election\_age_i +  \epsilon_i$$
+For men:
+
+$$lived\_after_i = (\beta_0  + \beta_1) + (\beta_2 + \beta_3) election\_age_i +  \epsilon_i$$
 
 ```{r fit_2}
 fit_2 <- stan_glm(data = governors,
@@ -70,43 +78,75 @@ print(fit_2, details = FALSE)
 ## Temperance
 
 
-```{r}
+```{r standard}
 library(ggdist)
 
 newobs <- tibble(sex = rep(c("Male", "Female"), 3), 
                  election_age = rep(c(30, 45, 60), 2),
                  names = paste(sex, election_age, sep = "_"))
-```
 
-```{r}
 pe <- posterior_epred(fit_2,
                       newdata = newobs) %>% 
   as_tibble() %>% 
   set_names(newobs$names)
-```
 
-```{r}
+# Note the new arguments to pivot_longer(). This trick is due to Nosa and his
+# breakout room. We don't need separate(), although you can use it if you like.
+
 x <- pe %>% 
-  pivot_longer(names_to = "Group",
+  pivot_longer(names_to = c("Gender", "Age"),
+               names_sep = "_",
                values_to = "Years",
-               cols = everything()) %>% 
-  separate(Group, c("Gender", "Age"), "_") 
-```
+               cols = everything()) 
 
-```{r}
 x %>% 
-  ggplot(aes(x = Years, y = Age, fill = Gender, alpha = 0.5)) +
+  ggplot(aes(x = Years, y = Age, fill = Gender)) +
   
-  # position = "dodge" is the only sure way to see all 3 treatment distributions
-  # identity, single, or any others drop "Sometimes" - topic for further study
-  
-    stat_slab() +
-    guides(alpha = FALSE) +
+    stat_slab(alpha = 0.5) +
     labs(title = "Candidate Longevity versus Gender and Age at Election",
          subtitle = "Age at election does not matter to longevity for female candidates . . . ?", 
          x = "Expected Years To Live Post Election",
          y = "Age at Election",
          caption = "Source: Barfort, Klemmensen & Larsen (2019)")
 ```
+
+
+## Using tidybayes
+
+The above is our current approach. And, often, as when calculating treatment effects, we must use this approach since we need to manipulate the individual posteriors while the tibble is in the "wide" format. But, in examples in which we only care about simple expected values (which is the most common scenario in final projects) we can use the **tidybayes** package. Example:
+
+
+```{r tidybayes, message = FALSE}
+# Need the message = FALSE hack because there is no other way to get the stupid
+# message about posterior_linpred() to go away.
+
+library(tidybayes)
+
+# This one call does all the splitting apart and putting together that several
+# lines of code require above. Nice! However, you need to remember that the
+# output value is provided in a variable named `.value`. It is, however,
+# convenient that you get back the original columns in newobs just as you
+# defined them.
+
+z <- add_fitted_draws(newobs, fit_2)
+
+# With z, we can go straight to plotting, as we do above.
+
+z %>% 
+  ggplot(aes(x = .value, 
+             y = as.character(election_age), 
+             fill = sex)) +
+    
+    stat_slab(alpha = 0.5) +
+    labs(title = "Candidate Longevity versus Gender and Age at Election",
+         subtitle = "Age at election does not matter to longevity for female candidates . . . ?", 
+         x = "Expected Years To Live Post Election",
+         y = "Age at Election",
+         caption = "Source: Barfort, Klemmensen & Larsen (2019)")
+```
+
+This is the same plot as we created above, but with much less code. Again, this trick will not work in many cases. If you need to calculate a treatment effect or to predict for 100 people and then find the 4th tallest, or whatever, you have no choice but to work with the posterior in wide format first.
+
+But, for most/all final projects, the main plot will be like the one here, a collection of nicely presented expected values for various categories of units. In that case, `add_fitted_draws()` is very handy!
 
 
